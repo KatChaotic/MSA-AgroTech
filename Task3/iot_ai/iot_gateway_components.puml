@@ -1,0 +1,38 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Ext(house_rfid, "RFID-метки на животных")
+Container_Ext(house_feeders, "Кормушки")
+Container_Ext(house_water, "Поилки")
+Container_Ext(house_water_filter, "Фильтр воды")
+
+Container_Ext(iot_ai, "ИИ Сервис", "", "Распознание видео-потока, выделение метрик поведения")
+
+ContainerQueue_Ext(agent_service_bus, "Шина данных", "")
+
+Container_Boundary(iot_gateway, "IoT-Шлюз") {
+    Component(DeviceListenerController, "DeviceListenerController", "", "Слушает события устройств по специализированным протоколам")
+    Component(DeviceReaderController, "DeviceReaderController", "", "Переодически читает показания устройств")
+
+    Component(DeviceDataConverter, "DeviceDataConverter", "", "Преобразует уникальные и специфичные форматы данных с устройств в унифицированный формат")
+
+    Component(MetricPublisher, "MetricPublisher", "", "Публикует унифицированные метрики")
+}
+
+Rel_Down(house_rfid, DeviceListenerController, "Передает", "События")
+Rel_Down(house_feeders, DeviceReaderController, "Передает", "Показания")
+Rel_Down(house_water, DeviceReaderController, "Передает", "Показания")
+Rel_Down(house_water_filter, DeviceReaderController, "Передает", "Показания")
+
+Rel_Down(DeviceListenerController, DeviceDataConverter, "Использует")
+Rel_Down(DeviceReaderController, DeviceDataConverter, "Использует")
+
+Rel_Down(DeviceListenerController, MetricPublisher, "Использует")
+Rel_Down(DeviceReaderController, MetricPublisher, "Использует")
+
+Rel_L(iot_ai, DeviceListenerController, "Передает", "События")
+
+Rel_Down(MetricPublisher, agent_service_bus, "Публикует", "Унифицированные данные")
+
+@enduml

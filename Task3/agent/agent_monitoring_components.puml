@@ -1,0 +1,24 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+ContainerDb_Ext(agent_db, "Локальная БД", "", "Хранение данных о ферме")
+ContainerQueue_Ext(agent_service_bus, "Шина данных", "")
+
+Container_Boundary(agent_monitoring, "Сервис мониторинга") {
+    Component(DataLayer, "DataLayer", "", "Слой доступа к данным")
+    
+    Component(DetectorController, "DetectorController", "", "Выявляет аномальные события")
+
+    Component(EventPublisher, "EventPublisher", "", "Публикует события")
+}
+
+Rel(DataLayer, agent_db, "Использует")
+Rel(agent_service_bus, DataLayer, "Поток метрик")
+
+Rel(DetectorController, DataLayer, "Использует")
+Rel(DetectorController, EventPublisher, "Использует")
+
+Rel(EventPublisher, agent_service_bus, "Публикует")
+
+@enduml
