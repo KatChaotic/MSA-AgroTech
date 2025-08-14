@@ -1,0 +1,135 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+' === Участники ===
+
+Person(техник, "Техник", "Мониторинг камер")
+Person(зоотехник, "Зоотехник", "Уход за животными")
+Person(оператор, "Оператор", "Управление фермой")
+Person(администратор, "Администратор", "Управление фермами")
+
+
+System_Boundary(farm, "АгроПром Х - Цифровая ферма") {
+    Container_Boundary(house, "Данные с загонов") {
+        Container_Ext(house_camera, "Камеры")
+        Container_Ext(house_rfid, "RFID-метки на животных")
+        Container_Ext(house_feeders, "Кормушки")
+        Container_Ext(house_water, "Поилки")
+        Container_Ext(house_water_filter, "Фильтр воды")
+    }
+
+    Container_Boundary(iot_platform, "IoT-Платформа") {
+        Container(iot_gateway, "IoT-Шлюз", "", "Читает данные с устройств, унифицирует данные")
+        Container(iot_ai, "ИИ Сервис", "", "Распознание видео-потока, выделение метрик поведения")
+    }
+
+    Container_Boundary(agent, "Агент") {
+        ContainerQueue(agent_service_bus, "Шина данных", "")
+
+        Container(agent_api, "API Агента", "", "Доступ к данным, Аутентификация, Управление")
+        ContainerDb(agent_db, "Локальная БД", "", "Хранение данных о ферме")
+
+        Container(agent_control, "Сервис управления", "", "Выполнение административных задач")
+
+        Container(agent_sync, "Сервис синхронизации", "", "Синхронизирует данные между агентом и центральным сервером")
+
+        Container(agent_monitoring, "Сервис мониторинга", "", "Анализ входящего потока данных, выявление аномалий")
+
+        Container(agent_notification, "Сервис уведомлений", "", "Оповещение пользователей о важных событиях")
+
+        Container(мобильное_приложение, "Мобильное приложение", "", "Полевые работы, получение оповещений")
+        Container(веб_приложение, "Веб-приложение", "", "Управление хозяйством, общий мониторинг")
+    }
+}
+
+Container_Ext(network_broadcast, "Шлюз Связи")
+
+System_Boundary(office, "АгроПром Х - Управление") {
+
+    Container_Boundary(master, "Центральный сервер") {
+        Container(master_api, "API Центрального сервера", "", "Доступ к данным, Аутентификация, Управление")
+        Container(master_sync, "Сервис синхронизации", "", "Синхронизирует данные между агентом и центральным сервером")
+
+        ContainerQueue(master_service_bus, "Шина данных", "")
+        ContainerDb(master_db, "Центральная БД", "", "Хранение данных о всех фермах")
+
+        Container(master_control, "Сервис управления", "", "Выполнение административных задач")
+
+        Container(master_monitoring, "Сервис мониторинга", "", "Сквозной анализ событий")
+        Container(master_notification, "Сервис уведомлений", "", "Оповещение пользователей о важных событиях")
+
+        Container(веб_портал, "Веб-портал", "", "Управление всеми фермами")
+    }
+
+    Container_Ext(аналитика, "Аналитика", "ERP", "Построение метрик, анализ")
+}
+
+' Персонал
+Rel(техник, мобильное_приложение, "Использует")
+Rel(зоотехник, мобильное_приложение, "Использует")
+
+Rel(оператор, веб_приложение, "Использует")
+Rel_R(администратор, веб_портал, "Использует")
+
+' Сбор данных
+Rel_Down(house_camera, iot_ai, "Передает", "Видео-поток")
+Rel_Down(house_rfid, iot_gateway, "Передает", "События")
+Rel_Down(house_feeders, iot_gateway, "Передает", "Показания")
+Rel_Down(house_water, iot_gateway, "Передает", "Показания")
+Rel_Down(house_water_filter, iot_gateway, "Передает", "Показания")
+
+Rel_L(iot_ai, iot_gateway, "Передает", "События")
+
+Rel_Down(iot_gateway, agent_service_bus, "Публикует", "Унифицированные данные")
+
+' Агент
+Rel_D(agent_service_bus, agent_monitoring, "Метрики")
+Rel(agent_monitoring, agent_service_bus, "События уведомлений")
+Rel(agent_monitoring, agent_db, "Использует")
+
+Rel(agent_service_bus, agent_control, "Задачи управления")
+Rel(agent_control, agent_db, "Использует")
+
+Rel_D(agent_service_bus, agent_notification, "События уведомлений")
+Rel(agent_notification, agent_db, "Использует")
+
+Rel(agent_notification, network_broadcast, "Публикует оповещение")
+
+Rel(agent_sync, agent_db, "Использует")
+Rel(agent_sync, agent_service_bus, "Публикует задачи")
+
+Rel_L(agent_api, agent_db, "Использует")
+
+' Пользовательский функционал
+Rel(мобильное_приложение, agent_api, "Использует")
+Rel(веб_приложение, agent_api, "Использует")
+
+' Центральный сервер
+Rel_Down(agent_sync, master_api, "Использует")
+Rel(master_sync, agent_api, "Использует")
+
+Rel(master_sync, master_db, "Использует")
+Rel(master_sync, master_service_bus, "Публикует события")
+
+Rel(master_service_bus, аналитика, "")
+
+Rel(master_api, master_db, "Использует")
+
+Rel(master_service_bus, master_control, "Задачи управления")
+Rel(master_control, master_db, "Использует")
+
+Rel(master_service_bus, master_monitoring, "События")
+Rel(master_monitoring, master_service_bus, "События уведомлений")
+Rel(master_monitoring, master_db, "Использует")
+
+Rel_D(master_service_bus, master_notification, "События уведомлений")
+Rel(master_notification, master_db, "Использует")
+
+
+Rel(веб_портал, master_api, "Использует")
+
+' Внешние интеграции
+Rel_R(master_db, аналитика, "Предоставляет метрики")
+
+@enduml
