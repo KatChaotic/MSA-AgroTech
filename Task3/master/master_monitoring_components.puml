@@ -2,8 +2,8 @@
 
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-ContainerDb_Ext(agent_db, "Локальная БД", "", "Хранение данных о ферме")
-ContainerQueue_Ext(agent_service_bus, "Шина данных", "")
+ContainerDb_Ext(master_db, "Центральная БД", "")
+ContainerQueue_Ext(master_service_bus, "Шина данных", "")
 
 Container_Boundary(agent_monitoring, "Сервис мониторинга") {
     Component(DataLayer, "DataLayer", "", "Слой доступа к данным")
@@ -15,13 +15,13 @@ Container_Boundary(agent_monitoring, "Сервис мониторинга") {
     Component(EventPublisher, "EventPublisher", "", "Публикует события")
 }
 
-Rel(DataLayer, agent_db, "Использует")
-Rel(agent_service_bus, EventsReader, "Читает метрики")
+Rel(DataLayer, master_db, "Использует")
+Rel(master_service_bus, EventsReader, "Читает метрики")
 
 Rel(DetectorController, DataLayer, "Использует")
 Rel(DetectorController, EventsReader, "Использует")
 Rel(DetectorController, EventPublisher, "Использует")
 
-Rel(EventPublisher, agent_service_bus, "Публикует")
+Rel(EventPublisher, master_service_bus, "Публикует")
 
 @enduml

@@ -26,9 +26,9 @@ System_Boundary(farm, "АгроПром Х - Цифровая ферма") {
 
     Container_Boundary(agent, "Агент") {
         ContainerQueue(agent_service_bus, "Шина данных", "")
+        ContainerDb(agent_db, "Локальная БД", "", "Хранение данных о ферме")
 
         Container(agent_api, "API Агента", "", "Доступ к данным, Аутентификация, Управление")
-        ContainerDb(agent_db, "Локальная БД", "", "Хранение данных о ферме")
 
         Container(agent_control, "Сервис управления", "", "Выполнение административных задач")
 
@@ -48,15 +48,17 @@ Container_Ext(network_broadcast, "Шлюз Связи")
 System_Boundary(office, "АгроПром Х - Управление") {
 
     Container_Boundary(master, "Центральный сервер") {
-        Container(master_api, "API Центрального сервера", "", "Доступ к данным, Аутентификация, Управление")
-        Container(master_sync, "Сервис синхронизации", "", "Синхронизирует данные между агентом и центральным сервером")
-
-        ContainerQueue(master_service_bus, "Шина данных", "")
         ContainerDb(master_db, "Центральная БД", "", "Хранение данных о всех фермах")
+        ContainerQueue(master_service_bus, "Шина данных", "")
+
+        Container(master_api, "API Центрального сервера", "", "Доступ к данным, Аутентификация, Управление")
+
+        Container(master_sync, "Сервис синхронизации", "", "Синхронизирует данные между агентом и центральным сервером")
 
         Container(master_control, "Сервис управления", "", "Выполнение административных задач")
 
         Container(master_monitoring, "Сервис мониторинга", "", "Сквозной анализ событий")
+
         Container(master_notification, "Сервис уведомлений", "", "Оповещение пользователей о важных событиях")
 
         Container(веб_портал, "Веб-портал", "", "Управление всеми фермами")

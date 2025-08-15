@@ -1,0 +1,28 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+ContainerDb_Ext(master_db, "Центральная БД")
+ContainerQueue_Ext(master_service_bus, "Шина данных")
+
+Container_Boundary(master_control, "Сервис управления") {
+    Component(DataLayer, "DataLayer", "", "Обеспечивает доступ к данным")
+
+    Component(TasksListener, "TasksListener", "", "Слушает очередь сообщений на новые задачи")
+
+    Component(TasksController, "TasksController", "", "Управление и выполнение индивидуальными задачами управления")
+
+    Component(EventPublisher, "EventPublisher", "", "Публикует результирующие события в шину данных")
+}
+
+Rel(DataLayer, master_db, "Использует")
+Rel(master_service_bus, TasksListener, "Слушает")
+Rel(TasksListener, TasksController, "Использует")
+
+Rel(TasksController, DataLayer, "Использует")
+
+Rel(TasksController, EventPublisher, "Использует")
+
+Rel(EventPublisher, master_service_bus, "Публикует", "события")
+
+@enduml

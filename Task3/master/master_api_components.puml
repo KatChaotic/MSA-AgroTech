@@ -1,0 +1,57 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+ContainerDb_Ext(master_db, "Центральная БД", "")
+ContainerQueue_Ext(master_service_bus, "Шина данных", "")
+Container_Ext(agent_sync, "Сервис синхронизации Агента", "")
+
+Container_Ext(apps, "Приложения", "Веб-портал")
+
+Container_Boundary(agent_api, "API Агента") {
+    Component(AuthController, "AuthController", "", "Авторизация и аутентификация")
+
+    Component(NotificationsController, "NotificationsController", "", "Отображение уведомлений")
+
+    Component(StatisticsController, "StatisticsController", "", "Отображение статистики по всей ферме")
+
+    Component(FarmGridController, "FarmGridController", "", "Доступ к данным по всем фермам")
+
+    Component(FarmController, "FarmController", "", "Доступ к детальным данным по различным объектам фермы")
+
+    Component(UsersController, "UsersController", "", "Создание и управление пользователями")
+
+    Component(WebhooksController, "WebhooksController", "", "Получает события по синхронизации от агентского узла")
+
+    Component(BusinessLayer, "BusinessLayer", "", "Бизнес-логика приложения")
+    Component(DataLayer, "DataLayer", "", "Обеспечивает доступ к данным в БД")
+    Component(CommandPublisher, "CommandPublisher", "", "Публикует операции управления")
+}
+
+Rel(apps, AuthController, "Использует")
+Rel(apps, NotificationsController, "Использует")
+Rel(NotificationsController, apps, "Уведомляет", "websockets")
+Rel(apps, StatisticsController, "Использует")
+Rel(apps, FarmGridController, "Использует")
+Rel(apps, FarmController, "Использует")
+Rel(apps, UsersController, "Использует")
+
+Rel(AuthController, BusinessLayer, "Использует")
+Rel(NotificationsController, BusinessLayer, "Использует")
+Rel(StatisticsController, BusinessLayer, "Использует")
+Rel(FarmGridController, BusinessLayer, "Использует")
+Rel(FarmController, BusinessLayer, "Использует")
+Rel(UsersController, BusinessLayer, "Использует")
+
+Rel(BusinessLayer, DataLayer, "Использует")
+Rel(BusinessLayer, CommandPublisher, "Использует")
+
+Rel(DataLayer, master_db, "Использует")
+
+Rel(WebhooksController, CommandPublisher, "Использует")
+
+Rel(CommandPublisher, master_service_bus, "Публикует задачи")
+
+Rel(agent_sync, WebhooksController, "Отправляет события")
+
+@enduml

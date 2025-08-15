@@ -1,0 +1,24 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+ContainerDb_Ext(agent_db, "Локальная БД", "", "Хранение данных о ферме")
+ContainerQueue_Ext(agent_service_bus, "Шина данных", "")
+Container_Ext(network_broadcast, "Шлюз Связи")
+
+Container_Boundary(agent_notification, "Сервис уведомлений") {
+    Component(DataLayer, "DataLayer", "", "Обеспечивает доступ к данным")
+
+    Component(EventsListener, "EventsListener", "", "Слушает очередь сообщений")
+
+    Component(NotificationBroadcaster, "NotificationBroadcaster", "", "Отправляет события во внешний сервис уведомлений")
+}
+
+Rel(DataLayer, agent_db, "Использует")
+Rel(agent_service_bus, EventsListener, "Уведомляет")
+Rel(EventsListener, NotificationBroadcaster, "Использует")
+
+Rel(NotificationBroadcaster, DataLayer, "Использует")
+Rel(NotificationBroadcaster, network_broadcast, "Публикует уведомления")
+
+@enduml
