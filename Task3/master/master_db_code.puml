@@ -1,0 +1,141 @@
+@startuml
+
+class Farm {
+    +id: GUID
+    +title: string
+}
+
+class FarmStatus {
+    +id: int
+    +farm_id: GUID
+    +status: bool
+    +date: DateTime
+}
+
+FarmStatus::farm_id -> Farm::id
+
+class UserRole {
+    +id: GUID
+    +title: string
+}
+
+class User {
+    +id: GUID
+    +first_name: string
+    +last_name: string
+    +email: string
+    +password_hash: string
+    +active: bool
+}
+
+class UserFarmRole {
+    +user_id: GUID
+    +farm_id: GUID
+    +role_id: GUID
+}
+
+UserFarmRole::role_id -> UserRole::id
+UserFarmRole::user_id -> User::id
+UserFarmRole::farm_id -> Farm::id
+
+class UserDevice {
+    +id: GUID
+    +user_id: GUID
+    +user_device_token: string
+}
+
+UserDevice::user_id -> User::id
+
+class AnimalStatus {
+    +id: int
+    +title: string
+}
+
+class Animal {
+    +id: GUID
+    +farm_id: GUID
+    +birth_date: DateTime
+    +status: int
+}
+
+Animal::farm_id -> Farm::id
+Animal::status -> AnimalStatus::id
+
+class House {
+    +id: GUID
+    +farm_id: GUID
+    +title: string
+}
+
+House::farm_id -> Farm::id
+
+class AnimalHouse {
+    +animal_id: GUID
+    +house_id: GUID
+}
+
+AnimalHouse::house_id -> House::id
+AnimalHouse::animal_id -> Animal::id
+
+class DeviceType {
+    +id: int
+    +title: string
+}
+
+class Device {
+    +id: GUID
+    +device_type: int
+    +title: string
+    +vendor: string
+}
+
+Device::device_type -> DeviceType::id
+
+class HouseDevice {
+    +device_id: GUID
+    +house_id: GUID
+    +active: bool
+    +setup_date: DateTime
+}
+
+HouseDevice::device_id -> Device::id
+HouseDevice::house_id -> House::id
+
+class Metric {
+    +id: GUID
+    +title: string
+}
+
+class AnimalMetric {
+    +id: bigint
+    +metric_id: GUID
+    +animal_id: GUID
+    +date: DateTime
+    +value: float
+}
+
+AnimalMetric::metric_id -> Metric::id
+AnimalMetric::animal_id -> Animal::id
+
+class Notification {
+    +id: bigint
+    +text: string
+    +metric_id: GUID
+    +device_id: GUID
+}
+
+Notification::metric_id -> Metric::id
+Notification::device_id -> UserDevice::id
+
+class OperationCommand {
+    +id: int
+    +user_id: GUID
+    +farm_id: GUID
+    +status: int
+    +payload: string
+}
+
+OperationCommand::farm_id -> Farm::id
+OperationCommand::user_id -> User::id
+
+@enduml
