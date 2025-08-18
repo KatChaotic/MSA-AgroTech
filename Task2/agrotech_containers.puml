@@ -41,9 +41,9 @@ System_Boundary(farm, "АгроПром Х - Цифровая ферма") {
         Container(мобильное_приложение, "Мобильное приложение", "", "Полевые работы, получение оповещений")
         Container(веб_приложение, "Веб-приложение", "", "Управление хозяйством, общий мониторинг")
     }
-}
 
-Container_Ext(network_broadcast, "Шлюз Связи")
+    Container_Ext(network_broadcast, "Шлюз Связи")
+}
 
 System_Boundary(office, "АгроПром Х - Управление") {
 
@@ -75,61 +75,60 @@ Rel(оператор, веб_приложение, "Использует")
 Rel_R(администратор, веб_портал, "Использует")
 
 ' Сбор данных
-Rel_Down(house_camera, iot_ai, "Передает", "Видео-поток")
-Rel_Down(house_rfid, iot_gateway, "Передает", "События")
-Rel_Down(house_feeders, iot_gateway, "Передает", "Показания")
-Rel_Down(house_water, iot_gateway, "Передает", "Показания")
-Rel_Down(house_water_filter, iot_gateway, "Передает", "Показания")
+Rel_Down(house_camera, iot_ai, "Передает", "H264, Видео-поток")
+Rel_Down(house_rfid, iot_gateway, "Передает", "TCP/MQTT, События")
+Rel_Down(house_feeders, iot_gateway, "Передает", "MQTT, Показания")
+Rel_Down(house_water, iot_gateway, "Передает", "MQTT, Показания")
+Rel_Down(house_water_filter, iot_gateway, "Передает", "MQTT, Показания")
 
-Rel_L(iot_ai, iot_gateway, "Передает", "События")
+Rel_L(iot_ai, iot_gateway, "Передает", "API, События")
 
-Rel_Down(iot_gateway, agent_service_bus, "Публикует", "Унифицированные данные")
+Rel_Down(iot_gateway, agent_service_bus, "Метрики", "AMQP")
 
 ' Агент
-Rel_D(agent_service_bus, agent_monitoring, "Метрики")
-Rel(agent_monitoring, agent_service_bus, "События уведомлений")
+Rel_D(agent_service_bus, agent_monitoring, "Метрики", "AMQP")
+Rel(agent_monitoring, agent_service_bus, "События уведомлений", "AMQP")
 Rel(agent_monitoring, agent_db, "Использует")
 
-Rel(agent_service_bus, agent_control, "Задачи управления")
+Rel(agent_service_bus, agent_control, "Задачи управления", "AMQP")
 Rel(agent_control, agent_db, "Использует")
 
-Rel_D(agent_service_bus, agent_notification, "События уведомлений")
+Rel_D(agent_service_bus, agent_notification, "События уведомлений", "AMQP")
 Rel(agent_notification, agent_db, "Использует")
 
-Rel(agent_notification, network_broadcast, "Публикует оповещение")
+Rel(agent_notification, network_broadcast, "Публикует оповещение", "AMQP")
 
 Rel(agent_sync, agent_db, "Использует")
-Rel(agent_sync, agent_service_bus, "Публикует задачи")
+Rel(agent_sync, agent_service_bus, "Публикует задачи", "AMQP")
 
 Rel_L(agent_api, agent_db, "Использует")
 
 ' Пользовательский функционал
-Rel(мобильное_приложение, agent_api, "Использует")
-Rel(веб_приложение, agent_api, "Использует")
+Rel(мобильное_приложение, agent_api, "Использует", "RestAPI")
+Rel(веб_приложение, agent_api, "Использует", "RestAPI")
 
 ' Центральный сервер
-Rel_Down(agent_sync, master_api, "Использует")
-Rel(master_sync, agent_api, "Использует")
+Rel_Down(agent_sync, master_api, "Использует", "gRPC")
+Rel(master_sync, agent_api, "Использует", "gRPC")
 
 Rel(master_sync, master_db, "Использует")
-Rel(master_sync, master_service_bus, "Публикует события")
+Rel(master_sync, master_service_bus, "Публикует события", "AMQP")
 
 Rel(master_service_bus, аналитика, "")
 
 Rel(master_api, master_db, "Использует")
 
-Rel(master_service_bus, master_control, "Задачи управления")
-Rel(master_control, master_db, "Использует")
+Rel(master_service_bus, master_control, "Задачи управления", "AMQP")
+Rel(master_control, master_db, "Использует", "AMQP")
 
-Rel(master_service_bus, master_monitoring, "События")
-Rel(master_monitoring, master_service_bus, "События уведомлений")
+Rel(master_service_bus, master_monitoring, "События", "AMQP")
+Rel(master_monitoring, master_service_bus, "События уведомлений", "AMQP")
 Rel(master_monitoring, master_db, "Использует")
 
-Rel_D(master_service_bus, master_notification, "События уведомлений")
+Rel_D(master_service_bus, master_notification, "События уведомлений", "AMQP")
 Rel(master_notification, master_db, "Использует")
 
-
-Rel(веб_портал, master_api, "Использует")
+Rel(веб_портал, master_api, "Использует", "RestAPI")
 
 ' Внешние интеграции
 Rel_R(master_db, аналитика, "Предоставляет метрики")
