@@ -1,0 +1,89 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+' === Участники ===
+Person(техник, "Техник", "Мониторинг камер")
+Person(зоотехник, "Зоотехник", "Уход за животными")
+Person(оператор, "Оператор", "Управление фермой")
+Person(администратор, "Администратор", "Управление фермами")
+
+System_Boundary(farm, "АгроПром Х - Цифровая ферма") {
+    Container_Boundary(house, "Данные с загонов") {
+        Container_Ext(house_camera, "Камеры")
+        Container_Ext(house_feeders, "Кормушки")
+        Container_Ext(house_water, "Поилки")
+        Container_Ext(house_water_filter, "Фильтр воды")
+    }
+
+    Container_Boundary(agent, "Агент") {
+        ContainerQueue(agent_service_bus, "Шина данных", "")
+        ContainerDb(agent_db, "Локальная БД", "", "Хранение данных о ферме")
+
+        Container(agent_api, "API Агента", "", "Доступ к данным, Аутентификация, Управление")
+
+        Container(agent_monitoring, "Сервис мониторинга", "", "Анализ входящего потока данных, выявление аномалий")
+
+        Container_Ext(ai_model, "ИИ Модель")
+
+        Container(agent_notification, "Сервис уведомлений", "", "Оповещение пользователей о важных событиях")
+    }
+
+    Container_Ext(network_broadcast, "Шлюз Связи")
+
+    Container(мобильное_приложение, "Мобильное приложение", "", "Полевые работы, получение оповещений")
+    Container(веб_приложение, "Веб-приложение", "", "Управление хозяйством, общий мониторинг")
+}
+
+System_Boundary(office, "АгроПром Х - Управление") {
+    Container_Boundary(master, "Центральный сервер") {
+        ContainerDb(master_db, "Центральная БД", "", "Хранение данных о всех фермах")
+
+        Container(master_api, "API Центрального сервера", "", "Доступ к данным, Аутентификация, Управление")
+
+        Container(веб_портал, "Веб-портал", "", "Управление всеми фермами")
+    }
+
+
+    Container_Ext(аналитика, "Аналитика", "ERP", "Построение метрик, анализ")
+}
+
+' Персонал
+Rel(техник, мобильное_приложение, "Использует")
+Rel(зоотехник, мобильное_приложение, "Использует")
+
+Rel(оператор, веб_приложение, "Использует")
+Rel(администратор, веб_портал, "Использует")
+
+' Сбор данных
+Rel_Down(house_camera, agent_monitoring, "Передает", "Видео-поток")
+Rel_Down(house_feeders, agent_monitoring, "Передает", "Показания")
+Rel_Down(house_water, agent_monitoring, "Передает", "Показания")
+Rel_Down(house_water_filter, agent_monitoring, "Передает", "Показания")
+
+' Мониторинг
+Rel(agent_monitoring, ai_model, "Использует")
+Rel(agent_service_bus, agent_monitoring, "События")
+Rel(agent_monitoring, agent_service_bus, "Публикует")
+Rel(agent_monitoring, agent_notification, "Уведомляет")
+Rel(agent_monitoring, agent_db, "Использует")
+
+' Уведомления
+Rel(agent_notification, network_broadcast, "Использует")
+Rel(agent_notification, agent_db, "Использует")
+
+Rel(agent_api, agent_service_bus, "Публикует события")
+
+' Пользовательский функционал
+Rel(мобильное_приложение, agent_api, "Использует")
+Rel(веб_приложение, agent_api, "Использует")
+
+Rel_Up(master_api, agent_api, "Использует")
+Rel(master_api, master_db, "Использует")
+
+Rel(веб_портал, master_api, "Использует")
+
+' Внешние интеграции
+Rel(master_db, аналитика, "Предоставляет метрики")
+
+@enduml

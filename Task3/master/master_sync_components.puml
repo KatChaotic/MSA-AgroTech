@@ -1,0 +1,35 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+ContainerDb_Ext(master_db, "Центральная БД")
+ContainerQueue_Ext(master_service_bus, "Шина данных")
+
+Container_Ext(agent_api, "АПИ Агента")
+
+Container_Boundary(master_sync, "Сервис управления") {
+    Component(DataLayer, "DataLayer", "", "Доступ к данным")
+    Component(TimerSystem, "TimerSystem", "", "Запускает периодические задачи")
+    Component(CommandListener, "CommandListener", "", "Слушает очередь на команды")
+    Component(AgentClient, "AgentClient", "", "Доступ к АПИ агента")
+
+    Component(AgentSyncController, "AgentSyncController", "", "Реализует логику синхронизации")
+
+    Component(AgentStatusMonitoring, "AgentStatusMonitoring", "", "Проверяет статус доступности агента")
+}
+
+Rel(DataLayer, master_db, "Использует")
+Rel(master_service_bus, CommandListener, "Задачи")
+
+Rel(AgentClient, agent_api, "Использует")
+
+Rel(TimerSystem, AgentSyncController, "Запускает")
+Rel(TimerSystem, AgentStatusMonitoring, "Запускает")
+Rel(CommandListener, AgentSyncController, "Запускает")
+
+Rel(AgentSyncController, AgentClient, "Использует")
+Rel(AgentSyncController, DataLayer, "Использует")
+
+Rel(AgentStatusMonitoring, AgentClient, "Использует")
+
+@enduml

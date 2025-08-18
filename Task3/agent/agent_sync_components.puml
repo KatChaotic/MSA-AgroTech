@@ -1,0 +1,40 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+ContainerDb_Ext(agent_db, "Локальная БД", "", "Хранение данных о ферме")
+ContainerQueue_Ext(agent_service_bus, "Шина данных", "")
+Container_Ext(master_api, "Центральный АПИ", "")
+
+Container_Boundary(agent_sync, "Сервис синхронизации") {
+    Component(DataLayer, "DataLayer", "", "Обеспечивает доступ к данным")
+
+    Component(TimerService, "TimerService", "", "Триггерит переодически запуск задач синхронизации")
+    Component(TaskListener, "TaskListener", "", "Слушает очередь на внеочередные задачи синхронизации")
+
+    Component(OutgoingSyncService, "OutgoingSyncService", "", "Реализует логику синхронизации от агента к центральному серверу")
+
+    Component(InboundSyncService, "InboundSyncService", "", "Реализует логику синхронизации от центрального сервера к агенту")
+
+    Component(CommandPublisher, "CommandPublisher", "", "Публикует задачи для последующей обработки")
+}
+
+Rel(DataLayer, agent_db, "Использует")
+
+Rel(agent_service_bus, TaskListener, "Слушает задачи")
+
+Rel(CommandPublisher, agent_service_bus, "Публикует задачи")
+
+Rel(TimerService, OutgoingSyncService, "Запускает")
+Rel(TimerService, InboundSyncService, "Запускает")
+
+Rel(TaskListener, OutgoingSyncService, "Запускает")
+Rel(TaskListener, InboundSyncService, "Запускает")
+
+Rel(InboundSyncService, DataLayer, "Использует")
+Rel(InboundSyncService, CommandPublisher, "Использует")
+
+Rel(OutgoingSyncService, DataLayer, "Использует")
+Rel(OutgoingSyncService, master_api, "Использует")
+
+@enduml

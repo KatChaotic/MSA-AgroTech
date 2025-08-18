@@ -1,0 +1,63 @@
+@startuml
+
+interface IVideoStreamReceiver {
+    start(frameCallback)
+    stop()
+}
+
+class IpVideoStreamReceiver implements IVideoStreamReceiver
+
+class H264VideoStreamReceiver implements IVideoStreamReceiver
+
+class VideoFrame
+
+class VideoStreamController
+
+
+interface IModelController {
+    processFrame(frame: VideoFrame): IModelResult
+}
+
+abstract class IModelResult {
+    frame_timestamp: Integer
+}
+
+class GroupModelResult extends IModelResult {
+    group_fighting: Boolean
+    group_crashing: Boolean
+}
+
+class IndividualModelResult extends IModelResult {
+    id: Integer
+    sickness: Float
+    worrying: Float
+    death: Boolean
+}
+
+class FrameSplitterModelController implements IModelController {
+    processFrame(frame: VideoFrame): VideoFrame[]
+}
+
+class GroupModelController implements IModelController {
+    processFrame(frame): GroupModelResult
+}
+
+class IndividualModelController implements IModelController {
+    processFrame(individualFrame): IndividualModelResult
+}
+
+interface IGatewayClient {
+    sendModelResult(result: IModelResult)
+}
+
+class HttpGatewayClient implements IGatewayClient
+
+VideoStreamController -> IVideoStreamReceiver
+VideoStreamController -> IModelController
+VideoStreamController -> IGatewayClient
+
+IModelController -> IModelResult
+
+IVideoStreamReceiver -> VideoFrame
+
+@enduml

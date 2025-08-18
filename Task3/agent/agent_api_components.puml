@@ -1,0 +1,52 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+ContainerDb_Ext(agent_db, "Локальная БД", "", "Хранение данных о ферме")
+ContainerQueue_Ext(agent_service_bus, "Шина данных", "")
+Container_Ext(master_sync, "Центральный сервис синхронизации", "")
+
+Container_Ext(apps, "Приложения", "Веб-Портал, Мобильное приложение")
+
+Container_Boundary(agent_api, "API Агента") {
+    Component(AuthController, "AuthController", "", "Авторизация и аутентификация")
+
+    Component(NotificationsController, "NotificationsController", "", "Отображение уведомлений")
+
+    Component(StatisticsController, "StatisticsController", "", "Отображение статистики по всей ферме")
+
+    Component(FarmController, "FarmController", "", "Доступ к детальным данным по различным объектам фермы")
+
+    Component(WebhooksController, "WebhooksController", "", "Получает события по синхронизации от центрального узла")
+
+    Component(StatusController, "StatusController", "", "Статус доступности агента")
+
+    Component(BusinessLayer, "BusinessLayer", "", "Бизнес-логика приложения")
+    Component(DataLayer, "DataLayer", "", "Обеспечивает доступ к данным в БД")
+    Component(CommandPublisher, "CommandPublisher", "", "Публикует операции управления")
+}
+
+Rel(apps, AuthController, "Использует")
+Rel(apps, NotificationsController, "Использует")
+Rel(NotificationsController, apps, "Уведомляет", "websockets")
+Rel(apps, StatisticsController, "Использует")
+Rel(apps, FarmController, "Использует")
+
+Rel(AuthController, BusinessLayer, "Использует")
+Rel(NotificationsController, BusinessLayer, "Использует")
+Rel(StatisticsController, BusinessLayer, "Использует")
+Rel(FarmController, BusinessLayer, "Использует")
+
+Rel(BusinessLayer, DataLayer, "Использует")
+Rel(BusinessLayer, CommandPublisher, "Публикует команды")
+
+Rel(DataLayer, agent_db, "Использует")
+
+Rel(WebhooksController, CommandPublisher, "Использует")
+
+Rel(CommandPublisher, agent_service_bus, "Использует")
+
+Rel(master_sync, WebhooksController, "Отправляет события")
+Rel(master_sync, StatusController, "Опрашивает")
+
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Ext(house_camera, "Камеры")
+Container_Ext(iot_gateway, "IoT-Шлюз", "", "Читает данные с устройств, унифицирует данные")
+
+Component_Ext(ai_model, "ИИ Модель", "", "Модель ИИ, предоставленная партнерами")
+
+Container_Boundary(iot_ai, "ИИ Сервис") {
+    Component(VideoStreamController, "VideoStreamController", "", "Получает данные видео-поток")
+
+    Component(ModelController, "ModelController", "", "Прогоняет входящий видео-поток через модель ИИ")
+
+    Component(IoTClient, "IoTClient", "", "Отправляет параметры")
+}
+
+Rel_Left(ModelController, ai_model, "Использует")
+
+Rel_Down(house_camera, VideoStreamController, "Передает", "Сырой видео-поток")
+
+Rel_Down(VideoStreamController, ModelController, "Использует")
+
+Rel_Down(ModelController, IoTClient, "Использует")
+
+Rel_Down(IoTClient, iot_gateway, "Передает", "События")
+
+@enduml

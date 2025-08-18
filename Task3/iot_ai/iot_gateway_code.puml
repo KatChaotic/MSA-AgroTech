@@ -1,0 +1,77 @@
+@startuml
+
+interface IDeviceReader {
+    read(): DeviceData
+}
+
+interface IDeviceDataStreamProvider {
+    listen(callback)
+    stop()
+}
+
+class DeviceReaderDataStreamFacade implements IDeviceDataStreamProvider {
+    reader: IDeviceReader
+}
+
+class TcpDeviceReader implements IDeviceReader
+
+class UdpDeviceReader implements IDeviceReader
+
+class MQTTDeviceReader implements IDeviceDataStreamProvider
+
+interface IDeviceDataConverter {
+    convert(data: DeviceData): Metric[]
+}
+
+class FeederByCompanyADeviceDataConverter implements IDeviceDataConverter
+
+class FeederByCompanyBDeviceDataConverter implements IDeviceDataConverter
+
+enum DeviceType {
+    FEEDER
+    DRINKER
+    RFID_READER
+    WATER_FILTER
+}
+
+class DeviceConfiguration {
+    source: IDeviceDataStreamProvider
+    converter: IDeviceDataConverter
+    device_type: DeviceType
+    device_id: integer
+    device_title: string
+}
+
+class Metric {
+    timestamp: integer
+    metric_id: string
+    device_id: integer
+    ...
+}
+
+class DevicesProcessor {
+    deviceConfigurations: DeviceConfiguration[]
+    publisher: IMetricPublisher
+
+    start()
+    stop()
+}
+
+interface IMetricPublisher {
+    publish(metrics: Metric[])
+}
+
+class AmqpMetricPublisher implements IMetricPublisher
+
+DevicesProcessor -> IMetricPublisher
+DevicesProcessor -> DeviceConfiguration
+
+DeviceConfiguration -> IDeviceDataStreamProvider
+DeviceConfiguration -> IDeviceDataConverter
+DeviceConfiguration -> DeviceType
+
+DeviceReaderDataStreamFacade -> IDeviceReader
+
+IDeviceDataStreamProvider -> Metric
+
+@enduml

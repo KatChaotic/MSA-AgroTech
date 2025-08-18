@@ -1,0 +1,29 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(master_db, "Центральный сервер БД") {
+    ComponentDb(CommonDB, "CommonDB", "", "Пользователи, Доступы, Фермы, Метаданные")
+
+    ComponentDb(FarmXXXX, "FarmXXXX", "", "Данные о ферме")
+}
+
+Container_Ext(master_sync, "Сервис синхронизации", "", "Синхронизирует данные между агентом и центральным сервером")
+Container_Ext(master_control, "Сервис управления", "", "Выполнение административных задач")
+Container_Ext(master_monitoring, "Сервис мониторинга", "", "Сквозной анализ событий")
+Container_Ext(master_notification, "Сервис уведомлений", "", "Оповещение пользователей о важных событиях")
+Container_Ext(аналитика, "Аналитика", "ERP", "Построение метрик, анализ")
+
+Rel(аналитика, CommonDB, "Читает")
+Rel(аналитика, FarmXXXX, "Читает")
+
+Rel(master_sync, FarmXXXX, "Записывает")
+Rel(master_sync, CommonDB, "Использует")
+
+Rel(master_control, CommonDB, "Использует")
+Rel(master_control, FarmXXXX, "Использует")
+
+Rel(master_monitoring, FarmXXXX, "Использует")
+Rel(master_notification, FarmXXXX, "Использует")
+
+@enduml
